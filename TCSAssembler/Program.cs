@@ -9,4 +9,4 @@
             Assembler.X86.CoreX86.Export("Kernel.asm");
         }
     }
-}
+}in
