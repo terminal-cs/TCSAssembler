@@ -1,15 +1,18 @@
 ﻿using dnlib.DotNet;
+using dnlib.DotNet.Emit;
+using System.Diagnostics;
 
 namespace TCSAssembler.Assembler.X86
 {
     public static class CoreX86
     {
-        public static readonly List<string> ASM = new();
+        public static List<string> ASM = new();
+        static int CurrentInstruction=0;
 
         public static void Initialise()
         {
             ASM.Add("[org 0x7c00]");
-            ASM.Add("jmp Source.Main\n");
+            ASM.Add("jmp Source.Kernel.Main\n");
         }
 
         public static void ParseMethod(MethodDef Method)
@@ -18,6 +21,10 @@ namespace TCSAssembler.Assembler.X86
                 return;
 
             ASM.Add($"{GetMethodName(Method)}:");
+            for (CurrentInstruction=0;CurrentInstruction<Method.Body.Instructions.Count;CurrentInstruction++) {
+                Instruction _instruction=Method.Body.Instructions[CurrentInstruction];
+                ASM.Add($"; Instruction: {_instruction}");
+            }
             /*for (int i=0;i<method.Body.Variables.Count;i++) {
                 var type=method.Body.Variables[i].Type;
                 Console.WriteLine(type.ToString());
@@ -75,9 +82,11 @@ namespace TCSAssembler.Assembler.X86
             ASM.Add("\ntimes 510-($-$$) db 0");
             ASM.Add("dw 0xAA55");
             string Final = "";
+            int k=0;
             foreach (string line in ASM)
             {
-                Final += line + '\n';
+                Final += (k==ASM.Count-1 ? line : line + '\n');
+                k++;
             }
             File.WriteAllText(Path, Final);
         }
