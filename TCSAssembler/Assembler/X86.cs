@@ -30,7 +30,7 @@ namespace TCSAssembler.Assembler
                 if (Instruction.ToString().Contains("ldstr ") && Method.Body.Instructions[CurrentInstruction + 1].ToString().Contains("call System.Void System.Console::WriteLine(System.String)"))
                 {
                     ASM.Add("  " + Method.Body.Variables[VIndex] + " db " + Instruction.ToString().Split("ldstr ")[1] + ", 0");
-                    ASM.Add("  mov [" + Method.Body.Variables[VIndex++] + "], ah");
+                    ASM.Add("  mov [" + Method.Body.Variables[VIndex++] + "], si");
                     CurrentInstruction++;
                     continue;
                 }
