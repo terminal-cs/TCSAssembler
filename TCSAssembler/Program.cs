@@ -15,6 +15,7 @@ namespace TCSAssembler
         public const string Output = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.bin";
         public const string OutputASM = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.asm";
         public const string Nasm = "..\\..\\..\\nasm.exe";
+
         public static void Main()
         {
             CoreX86.Initialise();

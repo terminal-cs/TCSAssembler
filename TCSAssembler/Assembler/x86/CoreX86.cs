@@ -14,7 +14,7 @@ namespace TCSAssembler.Assembler.X86
 
         public static void ParseMethod(MethodDef Method)
         {
-            if (Method.Name == ".cctor")
+            if (Method.Name == ".cctor")  // Ignore useless class constructor
                 return;
 
             ASM.Add($"{Method.DeclaringType.Namespace}.{Method.Name}:");
