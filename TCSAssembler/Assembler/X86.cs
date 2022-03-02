@@ -8,11 +8,15 @@ namespace TCSAssembler.Assembler
         public X86()
         {
             ASM.Add("[org 0x7c00]");
+            ASM.Add("[Bits 16]");
             ASM.Add("jmp Source.Kernel.Main\n");
+            Instructions.Add(Code.Ldstr, LoadString);
         }
 
-        public readonly List<string> ASM = new();
-        public int VIndex;
+        public List<string> ASM = new();
+        public delegate void Method(MethodDef Method, Instruction Instruction);
+        private Dictionary<Code, Method> Instructions=new();
+        public int VIndex=0;
 
         public void ParseMethod(MethodDef Method)
         {
@@ -20,22 +24,19 @@ namespace TCSAssembler.Assembler
                 return;
 
             ASM.Add($"{GetMethodName(Method)}:");
+            if (Method.Body.Variables.Count>0) {
+                ASM.Add($"\tpush rbp");
+                ASM.Add($"\tmov  rbp, rsp");
+                ASM.Add($"\t; /\\ We have variables!");
+            }
             for (int CurrentInstruction = 0; CurrentInstruction < Method.Body.Instructions.Count; CurrentInstruction++)
             {
                 Instruction Instruction = Method.Body.Instructions[CurrentInstruction];
-                if (Instruction.ToString().EndsWith(" nop") || Instruction.ToString().EndsWith(" ret"))
-                {
-                    continue;
-                }
-                if (Instruction.ToString().Contains("ldstr ") && Method.Body.Instructions[CurrentInstruction + 1].ToString().Contains("call System.Void System.Console::WriteLine(System.String)"))
-                {
-                    ASM.Add("  " + Method.Body.Variables[VIndex] + " db " + Instruction.ToString().Split("ldstr ")[1] + ", 0");
-                    ASM.Add("  mov [" + Method.Body.Variables[VIndex++] + "], si");
-                    CurrentInstruction++;
-                    continue;
-                }
-                ASM.Add($"  ; Instruction: {Instruction}");
+                if (Instructions.ContainsKey(Instruction.OpCode.Code))
+                    Instructions[Instruction.OpCode.Code].Invoke(Method, Instruction);
+                ASM.Add($"\t; Instruction: {Instruction}");
             }
+            VIndex=0;
             /*for (int i=0;i<method.Body.Variables.Count;i++) {
                 var type=method.Body.Variables[i].Type;
                 Console.WriteLine(type.ToString());
@@ -52,7 +53,7 @@ namespace TCSAssembler.Assembler
             {
                 if (variable.IsStatic)
                 {
-                    ASM.Add($"  {GetFieldName(Type, variable)}: dq {(variable.HasConstant ? variable.Constant.Value + $" ;type: {variable.Constant.Type}" : 0)}");
+                    ASM.Add($"\t{GetFieldName(Type, variable)}: dq {(variable.HasConstant ? variable.Constant.Value + $" ;type: {variable.Constant.Type}" : 0)}");
                     //format the name, to make it readable
                     /*
                     DB	Define Byte	allocates 1 byte
@@ -86,5 +87,27 @@ namespace TCSAssembler.Assembler
             }
             File.WriteAllText(Path, Final);
         }
+
+        #region OPCODES/METHODS
+
+        private void LoadString(MethodDef Method, Instruction Instruction) {
+            
+            try {
+                ASM.Add($"{GetMethodName(Method)}.{Method.Body.Variables[VIndex]}:");
+                ASM.Add($"\t.size dd {Instruction.GetOperand().ToString().Length}");
+                ASM.Add($"\t.data db \"{Instruction.GetOperand()}\",0");
+                ASM.Add($"\t.type db \"{Instruction.GetOperand().GetType()}\"");
+                VIndex++;
+            } catch (System.ArgumentOutOfRangeException) {
+                ASM.Add($"{GetMethodName(Method)}.S_{VIndex}:");
+                ASM.Add($"\t.size dd {Instruction.GetOperand().ToString().Length}");
+                ASM.Add($"\t.data db \"{Instruction.GetOperand()}\",0");
+                ASM.Add($"\t.type db \"{Instruction.GetOperand().GetType()}\"");
+                VIndex++;
+            }
+            //ASM.Add($"\t{Method.Body.Variables[VIndex]} db \"{Instruction.GetOperand()}\"");
+        }
+
+        #endregion
     }
 }
