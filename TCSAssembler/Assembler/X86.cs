@@ -8,26 +8,27 @@ namespace TCSAssembler.Assembler
         public X86()
         {
             ASM.Add("[org 0x7c00]");
-            ASM.Add("[Bits 16]");
-            ASM.Add("jmp Source.Kernel.Main\n");
+            ASM.Add("[Bits 32]");
+            ASM.Add("jmp Source.Kernel.Main");
             Instructions.Add(Code.Ldstr, LoadString);
         }
 
         public List<string> ASM = new();
         public delegate void Method(MethodDef Method, Instruction Instruction);
-        private Dictionary<Code, Method> Instructions=new();
-        public int VIndex=0;
+        private readonly Dictionary<Code, Method> Instructions = new();
+        public int VIndex;
 
         public void ParseMethod(MethodDef Method)
         {
             if (Method.Name == ".cctor")  // Ignore useless class constructor
                 return;
 
-            ASM.Add($"{GetMethodName(Method)}:");
-            if (Method.Body.Variables.Count>0) {
-                ASM.Add($"\tpush rbp");
-                ASM.Add($"\tmov  rbp, rsp");
-                ASM.Add($"\t; /\\ We have variables!");
+            ASM.Add($"\n{GetMethodName(Method)}:");
+            if (Method.Body.Variables.Count > 0)
+            {
+                ASM.Add("\tpush rbp");
+                ASM.Add("\tmov  rbp, rsp");
+                ASM.Add("\t; /\\ We have variables!");
             }
             for (int CurrentInstruction = 0; CurrentInstruction < Method.Body.Instructions.Count; CurrentInstruction++)
             {
@@ -36,7 +37,7 @@ namespace TCSAssembler.Assembler
                     Instructions[Instruction.OpCode.Code].Invoke(Method, Instruction);
                 ASM.Add($"\t; Instruction: {Instruction}");
             }
-            VIndex=0;
+            VIndex = 0;
             /*for (int i=0;i<method.Body.Variables.Count;i++) {
                 var type=method.Body.Variables[i].Type;
                 Console.WriteLine(type.ToString());
@@ -90,22 +91,16 @@ namespace TCSAssembler.Assembler
 
         #region OPCODES/METHODS
 
-        private void LoadString(MethodDef Method, Instruction Instruction) {
-            
-            try {
-                ASM.Add($"{GetMethodName(Method)}.{Method.Body.Variables[VIndex]}:");
+        private void LoadString(MethodDef Method, Instruction Instruction)
+        {
+            if (Instruction.GetOperand() != null)
+            {
+                ASM.Add($"\n{GetMethodName(Method)}.{Method.Body.Variables[VIndex]}:");
                 ASM.Add($"\t.size dd {Instruction.GetOperand().ToString().Length}");
-                ASM.Add($"\t.data db \"{Instruction.GetOperand()}\",0");
-                ASM.Add($"\t.type db \"{Instruction.GetOperand().GetType()}\"");
-                VIndex++;
-            } catch (System.ArgumentOutOfRangeException) {
-                ASM.Add($"{GetMethodName(Method)}.S_{VIndex}:");
-                ASM.Add($"\t.size dd {Instruction.GetOperand().ToString().Length}");
-                ASM.Add($"\t.data db \"{Instruction.GetOperand()}\",0");
+                ASM.Add($"\t.data db \"{Instruction.GetOperand()}\", 0");
                 ASM.Add($"\t.type db \"{Instruction.GetOperand().GetType()}\"");
                 VIndex++;
             }
-            //ASM.Add($"\t{Method.Body.Variables[VIndex]} db \"{Instruction.GetOperand()}\"");
         }
 
         #endregion
