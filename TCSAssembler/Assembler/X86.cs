@@ -8,7 +8,7 @@ namespace TCSAssembler.Assembler
         public X86()
         {
             ASM.Add("[org 0x7c00]");
-            ASM.Add("[Bits 16]");
+            ASM.Add("[Bits 32]");
             ASM.Add("jmp Source.Kernel.Main\n");
             Instructions.Add(Code.Ldstr, LoadString);
         }
@@ -25,8 +25,8 @@ namespace TCSAssembler.Assembler
 
             ASM.Add($"{GetMethodName(Method)}:");
             if (Method.Body.Variables.Count>0) {
-                ASM.Add($"\tpush rbp");
-                ASM.Add($"\tmov  rbp, rsp");
+                ASM.Add($"\tpush ebp");
+                ASM.Add($"\tmov  ebp, esp");
                 ASM.Add($"\t; /\\ We have variables!");
             }
             for (int CurrentInstruction = 0; CurrentInstruction < Method.Body.Instructions.Count; CurrentInstruction++)
