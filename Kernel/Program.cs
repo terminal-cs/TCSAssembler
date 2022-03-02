@@ -6,7 +6,9 @@
         {
             if (true)
             {
-                Console.WriteLine("Hello, World!");
+                string F = "Hello, World!";
+                string D = "Hai :3";
+                Console.WriteLine(F);
             }
         }
     }

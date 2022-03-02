@@ -8,15 +8,31 @@ namespace TCSAssembler.Assembler
         public X86()
         {
             ASM.Add("[org 0x7c00]");
-            ASM.Add("[Bits 16]");
+            ASM.Add("[bits 32]");
             ASM.Add("jmp Source.Kernel.Main\n");
             Instructions.Add(Code.Ldstr, LoadString);
         }
 
+        /*
+        DB	Define Byte	allocates 1 byte
+        DW	Define Word	allocates 2 bytes
+        DD	Define Doubleword	allocates 4 bytes
+        DQ	Define Quadword	allocates 8 bytes
+        DT	Define Ten Bytes	allocates 10 bytes
+
+        EXAMPLE:
+        choice		DB	'y'
+        number		DW	12345
+        neg_number	DW	-12345
+        big_number	DQ	123456789
+        real_number1	DD	1.234
+        real_number2	DQ	123.456
+        */
+
         public List<string> ASM = new();
         public delegate void Method(MethodDef Method, Instruction Instruction);
-        private Dictionary<Code, Method> Instructions=new();
-        public int VIndex=0;
+        private readonly Dictionary<Code, Method> Instructions = new();
+        public int VIndex;
 
         public void ParseMethod(MethodDef Method)
         {
@@ -24,17 +40,25 @@ namespace TCSAssembler.Assembler
                 return;
 
             ASM.Add($"{GetMethodName(Method)}:");
-            if (Method.Body.Variables.Count>0) {
-                ASM.Add($"\tpush rbp");
-                ASM.Add($"\tmov  rbp, rsp");
-                ASM.Add($"\t; /\\ We have variables!");
+            if (Method.Body.Variables.Count > 0)
+            {
+                ASM.Add("\tpush ebp");
+                ASM.Add("\tmov ebp, esp");
             }
             for (int CurrentInstruction = 0; CurrentInstruction < Method.Body.Instructions.Count; CurrentInstruction++)
             {
                 Instruction Instruction = Method.Body.Instructions[CurrentInstruction];
-                if (Instructions.ContainsKey(Instruction.OpCode.Code))
-                    Instructions[Instruction.OpCode.Code].Invoke(Method, Instruction);
-                ASM.Add($"\t; Instruction: {Instruction}");
+                if (Instruction.OpCode.Code == Code.Ret)
+                {
+                    ASM.Add("\tret");
+                    continue;
+                }
+                if (Instruction.OpCode.Code != Code.Nop)
+                {
+                    if (Instructions.ContainsKey(Instruction.OpCode.Code))
+                        Instructions[Instruction.OpCode.Code].Invoke(Method, Instruction);
+                    ASM.Add($"\t; Instruction: {Instruction}");
+                }
             }
             VIndex = 0;
             /*for (int i=0;i<method.Body.Variables.Count;i++) {
@@ -55,21 +79,6 @@ namespace TCSAssembler.Assembler
                 {
                     ASM.Add($"\t{GetFieldName(Type, variable)}: dq {(variable.HasConstant ? variable.Constant.Value + $" ;type: {variable.Constant.Type}" : 0)}");
                     //format the name, to make it readable
-                    /*
-                    DB	Define Byte	allocates 1 byte
-                    DW	Define Word	allocates 2 bytes
-                    DD	Define Doubleword	allocates 4 bytes
-                    DQ	Define Quadword	allocates 8 bytes
-                    DT	Define Ten Bytes	allocates 10 bytes
-
-                    EXAMPLE:
-                    choice		DB	'y'
-                    number		DW	12345
-                    neg_number	DW	-12345
-                    big_number	DQ	123456789
-                    real_number1	DD	1.234
-                    real_number2	DQ	123.456
-                    */
                 }
             }
         }
@@ -92,7 +101,7 @@ namespace TCSAssembler.Assembler
 
         private void LoadString(MethodDef Method, Instruction Instruction)
         {
-            if (Instruction.GetOperand() != null)
+            try
             {
                 ASM.Add($"\n{GetMethodName(Method)}.{Method.Body.Variables[VIndex]}:");
                 ASM.Add($"\t.size dd {Instruction.GetOperand().ToString().Length}");
@@ -100,6 +109,15 @@ namespace TCSAssembler.Assembler
                 ASM.Add($"\t.type db \"{Instruction.GetOperand().GetType()}\"");
                 VIndex++;
             }
+            catch (ArgumentOutOfRangeException)
+            {
+                ASM.Add($"\n{GetMethodName(Method)}.S{VIndex}:");
+                ASM.Add($"\t.size dd {Instruction.GetOperand().ToString().Length}");
+                ASM.Add($"\t.data db \"{Instruction.GetOperand()}\", 0");
+                ASM.Add($"\t.type db \"{Instruction.GetOperand().GetType()}\"");
+                VIndex++;
+            }
+            //ASM.Add($"\t{Method.Body.Variables[VIndex]} db \"{Instruction.GetOperand()}\"");
         }
 
         #endregion
