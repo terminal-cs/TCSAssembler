@@ -1,4 +1,4 @@
-using dnlib.DotNet;
+﻿using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 
 namespace TCSAssembler.Assembler
@@ -9,6 +9,7 @@ namespace TCSAssembler.Assembler
         {
             Instructions.Add(Code.Ldstr, LoadString);
             Instructions.Add(Code.Ret, Ret);
+            Instructions.Add(Code.Call, Call);
         }
 
         public Dictionary<string, List<string>> ASM = new();
@@ -26,8 +27,8 @@ namespace TCSAssembler.Assembler
 
             ASM.Add($"{MethodName}", new());
             if (Method.Body.Variables.Count>0) {
-                ASM[MethodName].Add("\tpush ebp");
-                ASM[MethodName].Add("\tmov  ebp, esp");
+                ASM[MethodName].Add("\tpush bpl");
+                ASM[MethodName].Add("\tmov  bpl, spl");
                 ASM[MethodName].Add("\t; /\\ We have variables!");
             }
             for (int CI = 0; CI < Method.Body.Instructions.Count; CI++)
@@ -86,9 +87,9 @@ namespace TCSAssembler.Assembler
             //ASM["_."].Add("\ntimes 510-($-$$) db 0");
             //ASM["_."].Add("dw 0xAA55");
             string Final = "[ORG 0x7c00]\n";
-            Final+="[BITS 32]\n";
-            Final+="jmp Source.Kernel.Main\n\n";
-            int k = 0;
+            //Final+="[BITS 32]\n";
+            Final+="jmp Source.Kernel.Main\n\n%include \"Libraries/System/Console.asm\"\n\n";
+
             foreach(KeyValuePair<string, List<string>> entry in ASM)
             {
                 if (entry.Key=="") {
@@ -123,21 +124,33 @@ namespace TCSAssembler.Assembler
                 string vname=GetMethodName(Method) + "." + Method.Body.Variables[VIndex];
                 ASM.Add(vname, new());
                 ASM[vname].Add($"\t.size dd {Instruction.GetOperand().ToString().Length}");
-                ASM[vname].Add($"\t.data db \"{Instruction.GetOperand()}\", 0");
+                ASM[vname].Add($"\t.data db \"{Instruction.GetOperand()}\", 13, 10, 0");
                 ASM[vname].Add($"\t.type db \"{Instruction.GetOperand().GetType()}\"");
                 VIndex++;
             } else {
                 string vname=GetMethodName(Method) + ".S_" + SIndex;
+                if (Method.Body.Instructions[Index+1].OpCode.Code==Code.Call) {
+                    ASM[GetMethodName(Method)].Add($"\tmov si, {vname}.data");
+                }
                 ASM.Add(vname, new());
-                ASM[vname].Add($"\t.size dd {Instruction.GetOperand().ToString().Length}");
-                ASM[vname].Add($"\t.data db \"{Instruction.GetOperand()}\", 0");
-                ASM[vname].Add($"\t.type db \"{Instruction.GetOperand().GetType()}\"");
+                ASM[vname].Add($"\t.size dd {Instruction.Operand.ToString().Length}");
+                ASM[vname].Add($"\t.data db \"{Instruction.Operand}\", 13, 10, 0");
+                ASM[vname].Add($"\t.type db \"{Instruction.Operand.GetType()}\"");
                 SIndex++;
             }
         }
 
         private void Ret(MethodDef Method, Instruction Instruction, int Index) {
             ASM[GetMethodName(Method)].Add("\tret");
+        }
+
+        private void Call(MethodDef Method, Instruction Instruction, int Index) {
+            string name=Instruction.Operand.ToString();
+            string type=name.Split()[0];
+            string func=name.Split()[1];
+            func=func.Replace("::", ".");
+            func=func.Remove(func.IndexOf('('));
+            ASM[GetMethodName(Method)].Add($"\tcall {func}");
         }
 
         #endregion
