@@ -4,18 +4,20 @@ namespace TCSAssembler.Assembler.X86
 {
     public static class CoreX86
     {
-        static List<string> code=new List<string>();
-        public static void Initialise() {
-            code.Add("[org 0x7c00]");
-            code.Add("jmp KernelEntry");
+        public static readonly List<string> ASM = new();
+
+        public static void Initialise()
+        {
+            ASM.Add("[org 0x7c00]");
+            ASM.Add("jmp KernelEntry\n");
         }
-        public static void ParseMethod(MethodDef method) {
-            if (method.Name==".cctor")
+
+        public static void ParseMethod(MethodDef Method)
+        {
+            if (Method.Name == ".cctor")
                 return;
-            code.Add($"; {method.Name} inside of ${method.DeclaringType.Namespace}");
-            if (method.GetParamCount()>0)
-                code.Add($"; first param: {method.GetParam(0).FullName}");
-            code.Add($"{method.DeclaringType.Namespace}.{method.Name}:");
+            ASM.Add($"{Method.DeclaringType.Namespace}.{Method.Name}:");
+
             /*for (int i=0;i<method.Body.Variables.Count;i++) {
                 var type=method.Body.Variables[i].Type;
                 Console.WriteLine(type.ToString());
@@ -25,15 +27,14 @@ namespace TCSAssembler.Assembler.X86
                 code.Add($"; {method.Body.Variables[i].Name} type: {method.Body.Variables[i].Type}");
             }*/
         }
-        public static void ParseFields(TypeDef type)
+
+        public static void ParseFields(TypeDef Type)
         {
-            foreach (var variable in type.Fields)
+            foreach (var variable in Type.Fields)
             {
-                //foreach variable in class :p (like int test in the kernel class (kernel.cs))
                 if (variable.IsStatic)
                 {
-                    //if the variable is static
-                    code.Add($"{GetFieldName(type, variable)}: dq {(variable.HasConstant?variable.Constant.Value+$" ;type: {variable.Constant.Type}":0)}");
+                    ASM.Add($"  {GetFieldName(Type, variable)}: dq {(variable.HasConstant ? variable.Constant.Value + $" ;type: {variable.Constant.Type}" : 0)}");
                     //format the name, to make it readable
                     /*
                     DB	Define Byte	allocates 1 byte
@@ -53,24 +54,30 @@ namespace TCSAssembler.Assembler.X86
                 }
             }
         }
-        public static string GetFieldName(TypeDef _class, FieldDef _var) {
-            return $"{_class.Namespace}.{_class.Name}.{_var.Name}";
-        }
-        public static string GetMethodName(MethodDef method) {
-            return $"{GetTypeName(method.DeclaringType)}.{method.Name}";
-        }
-        public static string GetTypeName(TypeDef def)
+
+        public static string GetFieldName(TypeDef Class, FieldDef Var)
         {
-            return $"{def.Namespace}.{def.Name}";
+            return $"{Class.Namespace}.{Class.Name}.{Var.Name}";
+        }
+
+        public static string GetMethodName(MethodDef Method)
+        {
+            return $"{GetTypeName(Method.DeclaringType)}.{Method.Name}";
+        }
+
+        public static string GetTypeName(TypeDef Def)
+        {
+            return $"{Def.Namespace}.{Def.Name}";
         }
 
         public static void Export(string Path)
         {
-            code.Add("times 510-($-$$) db 0");
-            code.Add("dw 0xAA55");
-            string Final="";
-            foreach (string line in code) {
-                Final+=$"{line}\n";
+            ASM.Add("\ntimes 510-($-$$) db 0");
+            ASM.Add("dw 0xAA55");
+            string Final = "";
+            foreach (string line in ASM)
+            {
+                Final += line + '\n';
             }
             File.WriteAllText(Path, Final);
         }
