@@ -45,19 +45,22 @@ namespace TCSAssembler.Assembler
                 ASM.Add("\tpush ebp");
                 ASM.Add("\tmov ebp, esp");
             }
-            for (int CurrentInstruction = 0; CurrentInstruction < Method.Body.Instructions.Count; CurrentInstruction++)
+
+            for (int CI = 0; CI < Method.Body.Instructions.Count; CI++)
             {
-                Instruction Instruction = Method.Body.Instructions[CurrentInstruction];
-                if (Instruction.OpCode.Code == Code.Ret)
+                Instruction Instruction = Method.Body.Instructions[CI];
+                switch (Instruction.OpCode.Code)
                 {
-                    ASM.Add("\tret");
-                    continue;
-                }
-                if (Instruction.OpCode.Code != Code.Nop)
-                {
-                    if (Instructions.ContainsKey(Instruction.OpCode.Code))
-                        Instructions[Instruction.OpCode.Code].Invoke(Method, Instruction);
-                    ASM.Add($"\t; Instruction: {Instruction}");
+                    case Code.Ret:
+                        ASM.Add("\tret");
+                        continue;
+                    case Code.Nop:
+                        continue;
+                    default:
+                        if (Instructions.ContainsKey(Instruction.OpCode.Code))
+                            Instructions[Instruction.OpCode.Code].Invoke(Method, Instruction);
+                        ASM.Add($"\t; Instruction: {Instruction}");
+                        break;
                 }
             }
             VIndex = 0;
@@ -91,8 +94,7 @@ namespace TCSAssembler.Assembler
             int k = 0;
             foreach (string line in ASM)
             {
-                Final += (k == ASM.Count - 1 ? line : line + '\n');
-                k++;
+                Final += k++ == ASM.Count - 1 ? line : line + '\n';
             }
             File.WriteAllText(Path, Final);
         }

@@ -6,9 +6,9 @@
         {
             if (true)
             {
-                string F = "Hello, World!";
-                string D = "Hai :3";
-                Console.WriteLine(F);
+                const string F = "Hello, World!";
+                const string D = "Hai :3";
+                Console.WriteLine(F + " " + D);
             }
         }
     }
