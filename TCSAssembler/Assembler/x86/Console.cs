@@ -1,4 +1,4 @@
-﻿namespace TCSAssembler.Assembler.X86
+﻿/*namespace TCSAssembler.Assembler.X86
 {
     public static class Console
     {
@@ -22,4 +22,4 @@
             Write(String + "\n");
         }
     }
-}
+}*/

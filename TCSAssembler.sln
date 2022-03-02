@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TCSAssembler", "TCSAssembler\TCSAssembler.csproj", "{A4E27003-0CE2-4F01-9EB0-7D1441A19B4F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kernel", "Kernel\Kernel.csproj", "{94703582-F09B-4BFE-A85A-4A81D371BD32}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{A4E27003-0CE2-4F01-9EB0-7D1441A19B4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4E27003-0CE2-4F01-9EB0-7D1441A19B4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A4E27003-0CE2-4F01-9EB0-7D1441A19B4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94703582-F09B-4BFE-A85A-4A81D371BD32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94703582-F09B-4BFE-A85A-4A81D371BD32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94703582-F09B-4BFE-A85A-4A81D371BD32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94703582-F09B-4BFE-A85A-4A81D371BD32}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

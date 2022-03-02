@@ -8,4 +8,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="dnlib" Version="3.4.0" />
+  </ItemGroup>
+
 </Project>
