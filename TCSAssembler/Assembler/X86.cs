@@ -1,29 +1,30 @@
 ﻿using dnlib.DotNet;
 using dnlib.DotNet.Emit;
-using System.Diagnostics;
 
-namespace TCSAssembler.Assembler.X86
+namespace TCSAssembler.Assembler
 {
-    public static class CoreX86
+    public class X86 : Base
     {
-        public static List<string> ASM = new();
-        static int CurrentInstruction=0;
-
-        public static void Initialise()
+        public X86()
         {
             ASM.Add("[org 0x7c00]");
             ASM.Add("jmp Source.Kernel.Main\n");
         }
 
-        public static void ParseMethod(MethodDef Method)
+        public readonly List<string> ASM = new();
+
+        public void ParseMethod(MethodDef Method)
         {
             if (Method.Name == ".cctor")  // Ignore useless class constructor
                 return;
 
             ASM.Add($"{GetMethodName(Method)}:");
-            for (CurrentInstruction=0;CurrentInstruction<Method.Body.Instructions.Count;CurrentInstruction++) {
-                Instruction _instruction=Method.Body.Instructions[CurrentInstruction];
-                ASM.Add($"; Instruction: {_instruction}");
+            for (int CurrentInstruction = 0; CurrentInstruction < Method.Body.Instructions.Count; CurrentInstruction++)
+            {
+                Instruction Instruction = Method.Body.Instructions[CurrentInstruction];
+                if (Instruction.ToString().EndsWith(" nop") || Instruction.ToString().EndsWith(" ret"))
+                    continue;
+                ASM.Add($"  ; Instruction: {Instruction}");
             }
             /*for (int i=0;i<method.Body.Variables.Count;i++) {
                 var type=method.Body.Variables[i].Type;
@@ -35,7 +36,7 @@ namespace TCSAssembler.Assembler.X86
             }*/
         }
 
-        public static void ParseFields(TypeDef Type)
+        public void ParseFields(TypeDef Type)
         {
             foreach (var variable in Type.Fields)
             {
@@ -62,30 +63,15 @@ namespace TCSAssembler.Assembler.X86
             }
         }
 
-        public static string GetFieldName(TypeDef Class, FieldDef Var)
-        {
-            return $"{Class.Namespace}.{Class.Name}.{Var.Name}";
-        }
-
-        public static string GetMethodName(MethodDef Method)
-        {
-            return $"{GetTypeName(Method.DeclaringType)}.{Method.Name}";
-        }
-
-        public static string GetTypeName(TypeDef Def)
-        {
-            return $"{Def.Namespace}.{Def.Name}";
-        }
-
-        public static void Export(string Path)
+        public void Export(string Path)
         {
             ASM.Add("\ntimes 510-($-$$) db 0");
             ASM.Add("dw 0xAA55");
             string Final = "";
-            int k=0;
+            int k = 0;
             foreach (string line in ASM)
             {
-                Final += (k==ASM.Count-1 ? line : line + '\n');
+                Final += (k == ASM.Count - 1 ? line : line + '\n');
                 k++;
             }
             File.WriteAllText(Path, Final);

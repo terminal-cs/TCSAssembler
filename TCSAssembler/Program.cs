@@ -1,16 +1,12 @@
 ﻿using dnlib.DotNet;
 using System.Diagnostics;
-using TCSAssembler.Assembler.X86;
-
-/* IMPORTANT!
-    -> TypeDef can be a class!
-    -> FieldDef could be a variable
-*/
+using TCSAssembler.Assembler;
 
 namespace TCSAssembler
 {
     public static class Program
     {
+        public static X86 Assembler { get; } = new();
         public const string Input = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.dll";
         public const string Output = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.bin";
         public const string OutputASM = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.asm";
@@ -18,7 +14,6 @@ namespace TCSAssembler
 
         public static void Main()
         {
-            CoreX86.Initialise();
             Console.WriteLine("Loading dll...");
             ModuleDefMD Code = ModuleDefMD.Load(Input);
             Console.WriteLine("Compiling...");
@@ -26,12 +21,12 @@ namespace TCSAssembler
             {
                 foreach (var Method in Class.Methods)
                 {
-                    CoreX86.ParseMethod(Method);
+                    Assembler.ParseMethod(Method);
                 }
-                CoreX86.ParseFields(Class); //and parse fields
+                Assembler.ParseFields(Class); //and parse fields
             }
             Console.WriteLine("Finalizing...");
-            CoreX86.Export(OutputASM);
+            Assembler.Export(OutputASM);
             Console.WriteLine("Running NASM...");
             Process.Start(Nasm, OutputASM + " -o " + Output + " -O3");
             Console.WriteLine("Done!");
