@@ -17,7 +17,7 @@ namespace TCSAssembler.Assembler.X86
             if (Method.Name == ".cctor")  // Ignore useless class constructor
                 return;
 
-            ASM.Add($"{Method.DeclaringType.Namespace}.{Method.Name}:");
+            ASM.Add($"{GetMethodName(Method)}:");
             /*for (int i=0;i<method.Body.Variables.Count;i++) {
                 var type=method.Body.Variables[i].Type;
                 Console.WriteLine(type.ToString());
