@@ -1,4 +1,5 @@
 ﻿using dnlib.DotNet;
+using System.Diagnostics;
 using TCSAssembler.Assembler.X86;
 
 /* IMPORTANT!
@@ -10,10 +11,16 @@ namespace TCSAssembler
 {
     public static class Program
     {
+        public const string Input = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.dll";
+        public const string Output = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.bin";
+        public const string OutputASM = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.asm";
+        public const string Nasm = "..\\..\\..\\nasm.exe";
         public static void Main()
         {
             CoreX86.Initialise();
-            ModuleDefMD Code = ModuleDefMD.Load("..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.dll");
+            Console.WriteLine("Loading dll...");
+            ModuleDefMD Code = ModuleDefMD.Load(Input);
+            Console.WriteLine("Compiling...");
             foreach (var Class in Code.Types)
             {
                 foreach (var Method in Class.Methods)
@@ -22,7 +29,10 @@ namespace TCSAssembler
                 }
                 CoreX86.ParseFields(Class); //and parse fields
             }
-            CoreX86.Export("Kernel.asm");
+            Console.WriteLine("Finalizing...");
+            CoreX86.Export(OutputASM);
+            Console.WriteLine("Running NASM...");
+            Process.Start(Nasm, OutputASM + " -o " + Output + " -O3");
             Console.WriteLine("Done!");
         }
     }

@@ -9,7 +9,7 @@ namespace TCSAssembler.Assembler.X86
         public static void Initialise()
         {
             ASM.Add("[org 0x7c00]");
-            ASM.Add("jmp KernelEntry\n");
+            ASM.Add("jmp Source.Main\n");
         }
 
         public static void ParseMethod(MethodDef Method)
