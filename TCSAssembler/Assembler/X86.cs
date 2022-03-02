@@ -12,6 +12,7 @@ namespace TCSAssembler.Assembler
         }
 
         public readonly List<string> ASM = new();
+        public int VIndex;
 
         public void ParseMethod(MethodDef Method)
         {
@@ -23,7 +24,16 @@ namespace TCSAssembler.Assembler
             {
                 Instruction Instruction = Method.Body.Instructions[CurrentInstruction];
                 if (Instruction.ToString().EndsWith(" nop") || Instruction.ToString().EndsWith(" ret"))
+                {
                     continue;
+                }
+                if (Instruction.ToString().Contains("ldstr ") && Method.Body.Instructions[CurrentInstruction + 1].ToString().Contains("call System.Void System.Console::WriteLine(System.String)"))
+                {
+                    ASM.Add("  " + Method.Body.Variables[VIndex] + " db " + Instruction.ToString().Split("ldstr ")[1] + ", 0");
+                    ASM.Add("  mov [" + Method.Body.Variables[VIndex++] + "], ah");
+                    CurrentInstruction++;
+                    continue;
+                }
                 ASM.Add($"  ; Instruction: {Instruction}");
             }
             /*for (int i=0;i<method.Body.Variables.Count;i++) {

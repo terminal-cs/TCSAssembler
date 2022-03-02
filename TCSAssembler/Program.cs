@@ -7,10 +7,11 @@ namespace TCSAssembler
     public static class Program
     {
         public static X86 Assembler { get; } = new();
-        public const string Input = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.dll";
-        public const string Output = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.bin";
-        public const string OutputASM = "..\\..\\..\\..\\Kernel\\bin\\Debug\\net6.0\\Kernel.asm";
+        public const string Input = "..\\..\\..\\..\\Kernel\\bin\\" + Mode + "\\net6.0\\Kernel.dll";
+        public const string Output = "..\\..\\..\\..\\Kernel\\bin\\" + Mode + "\\net6.0\\Kernel.bin";
+        public const string OutputASM = "..\\..\\..\\..\\Kernel\\bin\\" + Mode + "\\net6.0\\Kernel.asm";
         public const string Nasm = "..\\..\\..\\nasm.exe";
+        public const string Mode = "Debug";
 
         public static void Main()
         {

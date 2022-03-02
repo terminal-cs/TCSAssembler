@@ -4,11 +4,10 @@
     {
         public static void Main()
         {
-            Console.WriteLine("Hello, World!");
-            SetPixel();
+            if (true)
+            {
+                Console.WriteLine("Hello, World!");
+            }
         }
-
-        // We could do something like this for custom methods
-        public static extern void SetPixel();
     }
 }
