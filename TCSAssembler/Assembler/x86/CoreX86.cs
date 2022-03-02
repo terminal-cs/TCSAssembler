@@ -12,10 +12,10 @@ namespace TCSAssembler.Assembler.X86
         public static void ParseMethod(MethodDef method) {
             if (method.Name==".cctor")
                 return;
-            code.Add($"; {method.Name} inside of ${method.DeclaringType.Namespace}");
+            code.Add($"; {GetMethodName(method)}");
             if (method.GetParamCount()>0)
                 code.Add($"; first param: {method.GetParam(0).FullName}");
-            code.Add($"{method.DeclaringType.Namespace}.{method.Name}:");
+            code.Add($"{GetMethodName(method)}:");
             /*for (int i=0;i<method.Body.Variables.Count;i++) {
                 var type=method.Body.Variables[i].Type;
                 Console.WriteLine(type.ToString());
