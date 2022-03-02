@@ -32,9 +32,11 @@ namespace TCSAssembler.Assembler
             for (int CurrentInstruction = 0; CurrentInstruction < Method.Body.Instructions.Count; CurrentInstruction++)
             {
                 Instruction Instruction = Method.Body.Instructions[CurrentInstruction];
-                if (Instructions.ContainsKey(Instruction.OpCode.Code))
-                    Instructions[Instruction.OpCode.Code].Invoke(Method, Instruction);
-                ASM.Add($"\t; Instruction: {Instruction}");
+                if (Instruction.OpCode.Code!=Code.Nop) {
+                    if (Instructions.ContainsKey(Instruction.OpCode.Code))
+                        Instructions[Instruction.OpCode.Code].Invoke(Method, Instruction);
+                    ASM.Add($"\t; Instruction: {Instruction}");
+                }
             }
             VIndex=0;
             /*for (int i=0;i<method.Body.Variables.Count;i++) {
