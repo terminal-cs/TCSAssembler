@@ -1,4 +1,4 @@
-﻿using dnlib.DotNet;
+using dnlib.DotNet;
 using dnlib.DotNet.Emit;
 
 namespace TCSAssembler.Assembler
@@ -7,9 +7,10 @@ namespace TCSAssembler.Assembler
     {
         public X86()
         {
-            Instructions.Add(Code.Ldstr, LoadString);
-            Instructions.Add(Code.Ret, Ret);
-            Instructions.Add(Code.Call, Call);
+            Instructions.Add(Code.Ldstr, LoadString); //LOADSTRING (e.g "string a="hello" " )
+            Instructions.Add(Code.Ret,   Ret);        //RET        (e.g "return;"           )
+            Instructions.Add(Code.Call,  Call);       //CALLS      (e.g "hello_world()"     )
+            Instructions.Add(Code.Ldc_I4,LdcI4);      //INTEGER    (e.g "int a=5"           )
         }
 
         public Dictionary<string, List<string>> ASM = new();
@@ -26,11 +27,11 @@ namespace TCSAssembler.Assembler
             string MethodName=GetMethodName(Method);
 
             ASM.Add($"{MethodName}", new());
-            if (Method.Body.Variables.Count>0) {
+            /*if (Method.Body.Variables.Count>0) {
                 ASM[MethodName].Add("\tpush bpl");
                 ASM[MethodName].Add("\tmov  bpl, spl");
                 ASM[MethodName].Add("\t; /\\ We have variables!");
-            }
+            }*/
             for (int CI = 0; CI < Method.Body.Instructions.Count; CI++)
             {
                 Instruction Instruction = Method.Body.Instructions[CI];
@@ -151,6 +152,9 @@ namespace TCSAssembler.Assembler
             func=func.Replace("::", ".");
             func=func.Remove(func.IndexOf('('));
             ASM[GetMethodName(Method)].Add($"\tcall {func}");
+        }
+
+        private void LdcI4(MethodDef Method, Instruction Instruction, int Index) {
         }
 
         #endregion
